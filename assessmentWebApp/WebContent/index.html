@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> assessmentWebApp </title>
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" /> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script> -->
+  <script src="jquery-3.4.1.js"></script>
+  <link rel="stylesheet" href="bootstrap.min.css" >
+</head>
+<body>
+    
+<div class="container">
+  <h1>Add Edit Delete Table Row Example using JQuery - ItSolutionStuff.com</h1>
+    
+  <form action = "data" method = "post">
+        
+    <div class="form-group">
+      <label>Description:</label>
+      <input type="text" name="data" class="form-control" required="">
+    </div>
+    
+    <div class="form-group">
+      <label>Quantity:</label>
+      <input type="text" name="quantity" class="form-control" required="">
+    </div>
+    
+    <div class="form-group">
+      <label>Amount:</label>
+      <input type="text" name="amount" class="form-control" required="">
+    </div>
+    
+    <!-- <div class="form-group">
+      <label>Bill Number:</label>
+      <input type="text" name="billNo" class="form-control" required="">
+    </div> -->
+   
+    <button type="submit" class="btn btn-success save-btn">Save</button>
+    <button class="btn btn-success btn-refresh">Refresh Table</button>
+    
+  </form>
+  <br/>
+  <table class="table table-bordered data-table">
+    <thead>
+      <th>Bill Number</th>
+      <th>Description</th>
+      <th>Quantity</th>
+      <th>Amount</th>
+      <th width="200px">Action</th>
+    </thead>
+    <tbody>
+    
+    </tbody>
+  </table>
+   
+</div>
+   
+<script type="text/javascript">	
+	$("form").on("click", ".btn-refresh", function(){
+		$(".data-table").find("tr:gt(0)").remove();
+		$("input[name='data']").val('');
+        $("input[name='quantity']").val('');
+        $("input[name='amount']").val('');
+        
+        $.ajax({
+    		url: "http://localhost:8080/assessmentWebApp/getData",	
+    		dataType: "json",
+    		type: "get",
+    		success: function(a){
+    			for(var i in a){
+    				$(".data-table tbody").append("<tr data-id='"+a[i].id+"' data-name='"+a[i].data+"' data-email='"+a[i].quantity+"' data-amount='"+a[i].amount+"'><td>"+a[i].id+"</td><td>"+a[i].data+"</td><td>"+a[i].quantity+"</td><td>"+a[i].amount+"</td><td><button class='btn btn-info btn-xs btn-edit'>Edit</button><button class='btn btn-danger btn-xs btn-delete'>Delete</button></td></tr>");
+    			}
+    			
+    			//alert("success");
+    		},
+    		error: function(a){
+    			alert("Fail");
+    		}
+    	});
+    });
+	
+   
+    $("body").on("click", ".btn-delete", function(){
+    	var that = this;
+    	var id = $(this).parents("tr").attr('data-id');
+    	var oid = {id: id};
+        
+  //  });
+    $.ajax({
+    	url: "http://localhost:8080/assessmentWebApp/deleteServlet",
+		data: oid,
+		dataType: "json",
+		type: "post",
+		success : function(a){
+			if(a.status == "S"){
+				$(that).parents("tr").remove();
+			}
+		},
+		error: function(a){
+			alert("fail");
+		}
+    });
+    });
+    
+    $("body").on("click", ".btn-edit", function(){
+    	var id = $(this).parents("tr").attr('data-id');
+        var data = $(this).parents("tr").attr('data-name');
+        var quantity = $(this).parents("tr").attr('data-email');
+        var amount = $(this).parents("tr").attr('data-amount');
+    	
+        $(this).parents("tr").find("td:eq(0)").html('<input name="edit_id" value="'+id+'">');
+        $(this).parents("tr").find("td:eq(1)").html('<input name="edit_name" value="'+data+'">');
+        $(this).parents("tr").find("td:eq(2)").html('<input name="edit_email" value="'+quantity+'">');
+        $(this).parents("tr").find("td:eq(3)").html('<input name="edit_amount" value="'+amount+'">');
+    
+        $(this).parents("tr").find("td:eq(4)").prepend("<button class='btn btn-info btn-xs btn-update'>Update</button><button class='btn btn-warning btn-xs btn-cancel'>Cancel</button>")
+        $(this).hide();
+    });
+   
+    $("body").on("click", ".btn-cancel", function(){
+    	var id = $(this).parents("tr").attr('data-id');
+        var data = $(this).parents("tr").attr('data-name');
+        var quantity = $(this).parents("tr").attr('data-email');
+        var amount = $(this).parents("tr").attr('data-amount');
+    
+        $(this).parents("tr").find("td:eq(0)").text(id);
+        $(this).parents("tr").find("td:eq(1)").text(data);
+        $(this).parents("tr").find("td:eq(2)").text(quantity);
+        $(this).parents("tr").find("td:eq(3)").text(amount);
+   
+        $(this).parents("tr").find(".btn-edit").show();
+        $(this).parents("tr").find(".btn-update").remove();
+        $(this).parents("tr").find(".btn-cancel").remove();
+    });
+   
+    $("body").on("click", ".btn-update", function(){
+    	var that = this;
+    	var id = $(this).parents("tr").find("input[name='edit_id']").val();
+        var data = $(this).parents("tr").find("input[name='edit_name']").val();
+        var quantity = $(this).parents("tr").find("input[name='edit_email']").val();
+        var amount = $(this).parents("tr").find("input[name='edit_amount']").val();
+    	var oData = {
+    			id : id,
+    			data : data,
+    			quantity : quantity,
+    			amount : amount
+    	};
+        
+        $.ajax({
+    		url: "http://localhost:8080/assessmentWebApp/updateServlet",
+    		data: oData,
+    		dataType: "json",
+    		type: "post",
+    		success: function(a){
+    			if(a.status == "S"){
+    				$(that).parents("tr").find("td:eq(0)").text(id);
+    				$(that).parents("tr").find("td:eq(1)").text(data);
+    		        $(that).parents("tr").find("td:eq(2)").text(quantity);
+    		        $(that).parents("tr").find("td:eq(3)").text(amount);
+    		     
+    		        $(that).parents("tr").attr('data-id', id);
+    		        $(that).parents("tr").attr('data-name', data);
+    		        $(that).parents("tr").attr('data-email', quantity);
+    		        $(that).parents("tr").attr('data-amount', amount);
+    		        
+    		        $(that).parents("tr").find(".btn-edit").show();
+    		        $(that).parents("tr").find(".btn-cancel").remove();
+    		        $(that).parents("tr").find(".btn-update").remove();
+    			}
+    			//document.write("success");
+    		},
+    		error: function(a){
+    			alert("Fail");
+    		}
+    	});
+    });
+    
+</script>
+     
+</body>
+</html>
